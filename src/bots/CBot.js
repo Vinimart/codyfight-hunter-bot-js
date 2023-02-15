@@ -103,9 +103,10 @@ export default class CBot extends CBotConfig {
 
       if (skill.id === 7 || skill.id === 0) {
         // Blink and Demolish towards the exit
+        const exit = this.gameUtils.getClosestExit(this.game);
+
         target = this.gameUtils.getShortestDistanceMove([exit], this.game);
 
-        const exit = this.gameUtils.getClosestExit(this.game);
         const isTargetExit = exit?.x === target?.x && exit?.y === target?.y;
 
         if (skill.id === 0 && isTargetExit) continue;
