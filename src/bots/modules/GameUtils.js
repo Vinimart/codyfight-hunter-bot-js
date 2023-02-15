@@ -47,6 +47,43 @@ export default class GameUtils {
     );
   }
 
+  isCloser(currentPosition, targetA, targetB) {
+    return (
+      this.distance(
+        currentPosition?.x,
+        currentPosition?.y,
+        targetA?.x,
+        targetA?.y
+      ) <
+      this.distance(
+        currentPosition?.x,
+        currentPosition?.y,
+        targetB?.x,
+        targetB?.y
+      )
+    );
+  }
+
+  getClosestExit(game) {
+    const exits = this.findExits(game);
+    let distances = [];
+
+    for (const exit of exits) {
+      const distance = this.distance(
+        game?.players?.bearer?.position?.x,
+        game?.players?.bearer?.position?.y,
+        exit?.x,
+        exit?.y
+      );
+
+      distances.push({ exit, distance });
+    }
+
+    distances.sort((a, b) => a.distance - b.distance);
+
+    return distances[0]?.exit || null;
+  }
+
   getRandomMove(game) {
     return game.players.bearer.possible_moves[
       Math.floor(Math.random() * game.players.bearer.possible_moves.length)
@@ -83,8 +120,9 @@ export default class GameUtils {
     return distances[0].move;
   }
 
-  getFarthestDistanceMove(position, currentBestMove, game) {
+  getFarthestDistanceMove(position, game) {
     let longestDistance = 0;
+    let move;
 
     for (const possibleMove of game.players.bearer.possible_moves) {
       const distance = this.distance(
@@ -96,10 +134,10 @@ export default class GameUtils {
 
       if (distance > longestDistance) {
         longestDistance = distance;
-        currentBestMove = possibleMove;
+        move = possibleMove;
       }
     }
 
-    return currentBestMove;
+    return move;
   }
 }

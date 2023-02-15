@@ -17,9 +17,8 @@ export default class CBot extends CBotConfig {
   async playGame() {
     while (this.game.state.status === GAME_STATUS_PLAYING) {
       if (this.game.players.bearer.is_player_turn) {
-        // Develop your own bot algorithm!
-        await this.castRandomSkills();
-        await this.makeRandomMove();
+        await this.castSkills();
+        await this.makeMove();
       } else {
         await sleep(1000);
         this.game = await this.gameAPI.check(this.ckey);
@@ -27,19 +26,92 @@ export default class CBot extends CBotConfig {
     }
   }
 
-  async makeRandomMove() {
-    const move = this.gameUtils.getRandomMove(this.game);
-
+  async makeMove() {
     if (this.game.players.bearer.is_player_turn) {
+      let move = this.gameUtils.getRandomMove(this.game);
+
+      const ryo = this.gameUtils.findSpecialAgent(1, this.game);
+      const ripper = this.gameUtils.findSpecialAgent(4, this.game);
+      const buzz = this.gameUtils.findSpecialAgent(5, this.game);
+
+      const exit = this.gameUtils.getClosestExit(this.game);
+
+      const isRipperNearby = this.gameUtils.isNearby(
+        this.game.players.bearer?.position,
+        ripper?.position,
+        3
+      );
+
+      const isRyoCloser = this.gameUtils.isCloser(
+        this.game?.players?.bearer?.position,
+        ryo?.position,
+        exit
+      );
+
+      const isOpponentCloserToExit = this.gameUtils.isCloser(
+        exit,
+        this.game?.players?.opponent?.position,
+        this.game?.players?.bearer?.position
+      );
+
+      const avoidRipper = () => {
+        move = this.gameUtils.getFarthestDistanceMove(
+          ripper?.position,
+          this.game
+        );
+
+        console.log("💀 Avoiding Ripper");
+      };
+
+      const goToExit = () => {
+        move = this.gameUtils.getShortestDistanceMove([exit], this.game);
+
+        console.log("❎ Finding Exit");
+      };
+
+      const goToRyo = () => {
+        if (exit && !isRyoCloser && !isOpponentCloserToExit) return goToExit();
+
+        move = this.gameUtils.getShortestDistanceMove(
+          [ryo?.position],
+          this.game
+        );
+
+        console.log("🐽 Seeking Ryo");
+      };
+
+      const goRandom = () => {
+        move = this.gameUtils.getRandomMove(this.game);
+
+        console.log("🏖 Just chilling");
+      };
+
+      if (ripper && isRipperNearby) avoidRipper();
+      else if (ryo && buzz) goToRyo();
+      else if (exit) goToExit();
+      else goRandom();
+
       this.game = await this.gameAPI.move(this.ckey, move?.x, move?.y);
     }
   }
 
-  async castRandomSkills() {
+  async castSkills() {
     for (const skill of this.game.players.bearer.skills) {
       if (skill.status !== 1 || skill.possible_targets.length === 0) continue;
 
-      const target = this.gameUtils.getRandomTarget(skill.possible_targets);
+      let target;
+
+      const exit = this.gameUtils.getClosestExit(this.game);
+
+      if (skill.id === 7) {
+        target = this.gameUtils.getShortestDistanceMove([exit], this.game);
+      } else {
+        target = this.gameUtils.getRandomTarget(skill.possible_targets);
+      }
+
+      const isTargetExit = exit?.x === target?.x && exit?.y === target?.y;
+
+      if (skill.id === 0 && isTargetExit) continue;
 
       this.game = await this.gameAPI.cast(
         this.ckey,
@@ -47,6 +119,8 @@ export default class CBot extends CBotConfig {
         target?.x,
         target?.y
       );
+
+      console.log(`⚡️ Casting ${skill.name}`);
     }
   }
 }
