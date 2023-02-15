@@ -26,12 +26,12 @@ export default class CBotConfig {
     while (true) {
       try {
         console.log(
-          `*** Launching the game for ${this.constructor.name}_${this.index}`
+          `🚀 Launching the game for ${this.constructor.name}_${this.index}`
         );
 
         await this.play();
       } catch (e) {
-        console.error(`### Game failure ### Error: ${e.message}`);
+        console.error(`🚨 Game failure ### Error: ${e.message}`);
 
         console.log(
           `*** Re-launching the game for ${this.constructor.name}_${this.index}`
@@ -53,7 +53,17 @@ export default class CBotConfig {
 
       await this.endGame();
     } catch (error) {
-      console.error(`Error in play(): ${error.message}`);
+      console.error(`🚨 Error in play(): ${error?.message}
+${JSON.stringify(
+  {
+    code: error?.code,
+    method: error?.config?.method,
+    url: error?.config?.url,
+    data: error?.config?.data && JSON.parse(error?.config?.data),
+  },
+  null,
+  2
+)}`);
     }
   }
 
@@ -63,7 +73,7 @@ export default class CBotConfig {
     const dashboardUrl = this.url.replace("game.", "").replace("game-", "");
 
     console.log(
-      `^^ ${this.url} ${this.game.players.bearer.name} game initialized.
+      `✅ ${this.url} ${this.game.players.bearer.name} game initialized.
 Spectate your bot at ${dashboardUrl}play/?spectate=${this.game.players.bearer.name}
 `,
       this.game.state
@@ -77,7 +87,7 @@ Spectate your bot at ${dashboardUrl}play/?spectate=${this.game.players.bearer.na
       this.game = await this.gameAPI.check(this.ckey);
 
       console.log(
-        `++ ${this.game.players.bearer.name} game state ${this.game.state.status} received`
+        `${this.game.players.bearer.name} game state ${this.game.state.status} received`
       );
     }
   }

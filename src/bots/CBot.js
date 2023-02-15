@@ -105,23 +105,33 @@ export default class CBot extends CBotConfig {
         // Blink and Demolish towards the exit
         const exit = this.gameUtils.getClosestExit(this.game);
 
-        target = this.gameUtils.getShortestDistanceMove([exit], this.game);
+        const bestTarget = this.gameUtils.getTargetTowardsExit(
+          skill.possible_targets,
+          exit
+        );
 
-        const isTargetExit = exit?.x === target?.x && exit?.y === target?.y;
+        const isTargetExit =
+          exit?.x === bestTarget?.x && exit?.y === bestTarget?.y;
 
         if (skill.id === 0 && isTargetExit) continue;
+
+        target = bestTarget;
       } else {
         target = this.gameUtils.getRandomTarget(skill.possible_targets);
       }
 
-      this.game = await this.gameAPI.cast(
-        this.ckey,
-        skill.id,
-        target?.x,
-        target?.y
-      );
+      if (skill.possible_targets.includes(target)) {
+        this.game = await this.gameAPI.cast(
+          this.ckey,
+          skill.id,
+          target?.x,
+          target?.y
+        );
 
-      console.log(`⚡️ Casting ${skill.name}`);
+        console.log(
+          `⚡️ Casting ${skill.name} in x:${target?.x}, y:${target?.y}`
+        );
+      }
     }
   }
 }

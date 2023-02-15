@@ -84,6 +84,25 @@ export default class GameUtils {
     return distances[0]?.exit || null;
   }
 
+  getTargetTowardsExit(targets, exit) {
+    let distances = [];
+
+    for (const position of targets) {
+      const distance = this.distance(
+        position?.x,
+        position?.y,
+        exit?.x,
+        exit?.y
+      );
+
+      distances.push({ position, distance });
+
+      distances.sort((a, b) => a.distance - b.distance);
+    }
+
+    return distances[0]?.position || null;
+  }
+
   getRandomMove(game) {
     return game.players.bearer.possible_moves[
       Math.floor(Math.random() * game.players.bearer.possible_moves.length)
