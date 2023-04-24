@@ -1,7 +1,7 @@
 import CBotConfig from "./modules/CBotConfig.js";
 import GameUtils from "./modules/GameUtils.js";
 import { sleep } from "../modules/utils.js";
-import { GAME_STATUS_PLAYING } from "../modules/game-constants.js";
+import { GAME_STATUS_PLAYING, TILE_PIT } from "../modules/game-constants.js";
 
 // CBot class is the main class for the bot.
 // The bot algorithm is implemented in the playGame() method.
@@ -99,6 +99,13 @@ export default class CBot extends CBotConfig {
     for (const skill of this.game.players.bearer.skills) {
       if (skill.status !== 1 || skill.possible_targets.length === 0) continue;
 
+      const pitHoles = this.gameUtils.findPits(this.game);
+
+      const possibleTargets = skill.possible_targets.filter(
+        (target) =>
+          !pitHoles.some((hole) => hole.x === target.x && hole.y === target.y)
+      );
+
       let target;
 
       if (skill.id === 7 || skill.id === 0) {
@@ -106,7 +113,7 @@ export default class CBot extends CBotConfig {
         const exit = this.gameUtils.getClosestExit(this.game);
 
         const bestTarget = this.gameUtils.getTargetTowardsExit(
-          skill.possible_targets,
+          possibleTargets,
           exit
         );
 
@@ -117,7 +124,7 @@ export default class CBot extends CBotConfig {
 
         target = bestTarget;
       } else {
-        target = this.gameUtils.getRandomTarget(skill.possible_targets);
+        target = this.gameUtils.getRandomTarget(possibleTargets);
       }
 
       if (skill.possible_targets.includes(target)) {

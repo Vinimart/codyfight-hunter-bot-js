@@ -1,4 +1,11 @@
-import { TILE_EXIT_GATE } from "../../modules/game-constants.js";
+import {
+  TILE_EXIT_GATE,
+  TILE_PIT,
+  TILE_SLIDER_UP,
+  TILE_SLIDER_DOWN,
+  TILE_SLIDER_LEFT,
+  TILE_SLIDER_RIGHT,
+} from "../../modules/game-constants.js";
 
 // GameUtils class contains all the basic game logic that can be reused by all bots.
 // Also contains some helper functions that can be used by the bots.
@@ -18,6 +25,16 @@ export default class GameUtils {
       });
 
       return exits;
+    }, []);
+  }
+
+  findPits(game) {
+    return game.map.reduce((pits, row, y) => {
+      row.forEach((tile, x) => {
+        if (tile.type === TILE_PIT) pits.push({ x, y });
+      });
+
+      return pits;
     }, []);
   }
 
@@ -104,7 +121,11 @@ export default class GameUtils {
   }
 
   getRandomMove(game) {
-    return game.players.bearer.possible_moves[
+    const possibleMoves = game.players.bearer.possible_moves.filter(
+      (move) => move.type !== TILE_PIT
+    );
+
+    return possibleMoves[
       Math.floor(Math.random() * game.players.bearer.possible_moves.length)
     ];
   }
@@ -130,7 +151,24 @@ export default class GameUtils {
       }
     }
 
-    distances.sort((a, b) => a.distance - b.distance);
+    // Remove pits from the distances array
+    distances = distances.filter((distance) => distance.type !== TILE_PIT);
+
+    // Sort by distance, slider tiles should be at the end of the array
+    distances
+      .sort((a, b) => a.distance - b.distance)
+      .sort((a, b) => {
+        if (
+          a.type === TILE_SLIDER_UP ||
+          a.type === TILE_SLIDER_DOWN ||
+          a.type === TILE_SLIDER_LEFT ||
+          a.type === TILE_SLIDER_RIGHT
+        ) {
+          return 1;
+        }
+
+        return -1;
+      });
 
     if (this.isStaying(distances[0].move, game)) {
       return this.getRandomMove(game);
@@ -143,7 +181,11 @@ export default class GameUtils {
     let longestDistance = 0;
     let move;
 
-    for (const possibleMove of game.players.bearer.possible_moves) {
+    const possibleMoves = game.players.bearer.possible_moves.filter(
+      (distance) => distance.type !== TILE_PIT
+    );
+
+    for (const possibleMove of possibleMoves) {
       const distance = this.distance(
         possibleMove?.x,
         possibleMove?.y,
