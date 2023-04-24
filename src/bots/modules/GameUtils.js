@@ -1,11 +1,4 @@
-import {
-  TILE_EXIT_GATE,
-  TILE_PIT,
-  TILE_SLIDER_UP,
-  TILE_SLIDER_DOWN,
-  TILE_SLIDER_LEFT,
-  TILE_SLIDER_RIGHT,
-} from "../../modules/game-constants.js";
+import { TILE_EXIT_GATE, TILE_PIT } from "../../modules/game-constants.js";
 
 // GameUtils class contains all the basic game logic that can be reused by all bots.
 // Also contains some helper functions that can be used by the bots.
@@ -151,24 +144,9 @@ export default class GameUtils {
       }
     }
 
-    // Remove pits from the distances array
     distances = distances.filter((distance) => distance.type !== TILE_PIT);
 
-    // Sort by distance, slider tiles should be at the end of the array
-    distances
-      .sort((a, b) => a.distance - b.distance)
-      .sort((a, b) => {
-        if (
-          a.type === TILE_SLIDER_UP ||
-          a.type === TILE_SLIDER_DOWN ||
-          a.type === TILE_SLIDER_LEFT ||
-          a.type === TILE_SLIDER_RIGHT
-        ) {
-          return 1;
-        }
-
-        return -1;
-      });
+    distances.sort((a, b) => a.distance - b.distance);
 
     if (this.isStaying(distances[0].move, game)) {
       return this.getRandomMove(game);
