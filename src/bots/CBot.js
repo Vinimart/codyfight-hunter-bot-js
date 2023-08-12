@@ -36,6 +36,10 @@ export default class CBot extends CBotConfig {
 
       const exit = this.gameUtils.getClosestExit(this.game);
 
+      const opponentClass = this.game?.players?.opponent?.codyfighter?.class;
+
+      const isHunter = opponentClass === "HUNTER";
+
       const isRipperNearby = this.gameUtils.isNearby(
         this.game.players.bearer?.position,
         ripper?.position,
@@ -83,13 +87,38 @@ export default class CBot extends CBotConfig {
       const goRandom = () => {
         move = this.gameUtils.getRandomMove(this.game);
 
+        console.log("🎲 Going random");
+      };
+
+      const chaseOpponent = () => {
+        move = this.gameUtils.getShortestDistanceMove(
+          [this.game.players.opponent.position],
+          this.game
+        );
+
+        console.log("⚔ Chasing opponent");
+      };
+
+      const stay = () => {
+        move = this.gameUtils.getShortestDistanceMove(
+          [this.game.players.bearer.position],
+          this.game
+        );
+
         console.log("🏖 Just chilling");
       };
 
-      if (ripper && isRipperNearby) avoidRipper();
-      else if (ryo && buzz) goToRyo();
-      else if (exit) goToExit();
-      else goRandom();
+      if (ripper && isRipperNearby) {
+        avoidRipper();
+      }
+
+      if (isHunter) {
+        if (ryo && buzz) goToRyo();
+        else if (exit) goToExit();
+        else stay();
+      } else {
+        chaseOpponent();
+      }
 
       this.game = await this.gameAPI.move(this.ckey, move?.x, move?.y);
     }
@@ -97,37 +126,23 @@ export default class CBot extends CBotConfig {
 
   async castSkills() {
     for (const skill of this.game.players.bearer.skills) {
-      if (skill.status !== 1 || skill.possible_targets.length === 0) continue;
+      const hasEnoughEnergy =
+        skill.cost <= this.game.players.bearer.stats.energy;
 
-      const pitHoles = this.gameUtils.findPits(this.game);
+      if (
+        skill.status !== 1 ||
+        skill.possible_targets.length === 0 ||
+        !hasEnoughEnergy
+      )
+        continue;
 
-      const possibleTargets = skill.possible_targets.filter(
-        (target) =>
-          !pitHoles.some((hole) => hole.x === target.x && hole.y === target.y)
-      );
+      const target = this.game.players.opponent.position;
 
-      let target;
-
-      if (skill.id === 7 || skill.id === 0) {
-        // Blink and Demolish towards the exit
-        const exit = this.gameUtils.getClosestExit(this.game);
-
-        const bestTarget = this.gameUtils.getTargetTowardsExit(
-          possibleTargets,
-          exit
-        );
-
-        const isTargetExit =
-          exit?.x === bestTarget?.x && exit?.y === bestTarget?.y;
-
-        if (skill.id === 0 && isTargetExit) continue;
-
-        target = bestTarget;
-      } else {
-        target = this.gameUtils.getRandomTarget(possibleTargets);
-      }
-
-      if (skill.possible_targets.includes(target)) {
+      if (
+        skill.possible_targets.some(
+          (t) => t.x === target?.x && t.y === target?.y
+        )
+      ) {
         this.game = await this.gameAPI.cast(
           this.ckey,
           skill.id,
@@ -135,9 +150,7 @@ export default class CBot extends CBotConfig {
           target?.y
         );
 
-        console.log(
-          `⚡️ Casting ${skill.name} in x:${target?.x}, y:${target?.y}`
-        );
+        console.log(`⚡️ Casting ${skill.name}`);
       }
     }
   }

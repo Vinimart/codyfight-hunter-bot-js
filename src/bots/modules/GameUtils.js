@@ -94,20 +94,21 @@ export default class GameUtils {
     return distances[0]?.exit || null;
   }
 
-  getTargetTowardsExit(targets, exit) {
+  getTargetPosition(possibleTargets, target, towards = true) {
     let distances = [];
 
-    for (const position of targets) {
+    for (const position of possibleTargets) {
       const distance = this.distance(
         position?.x,
         position?.y,
-        exit?.x,
-        exit?.y
+        target?.x,
+        target?.y
       );
 
       distances.push({ position, distance });
 
-      distances.sort((a, b) => a.distance - b.distance);
+      if (towards) distances.sort((a, b) => a.distance - b.distance);
+      else distances.sort((a, b) => b.distance - a.distance);
     }
 
     return distances[0]?.position || null;
@@ -144,7 +145,17 @@ export default class GameUtils {
       }
     }
 
-    distances = distances.filter((distance) => distance.type !== TILE_PIT);
+    const pits = this.findPits(game);
+
+    distances = distances.filter((distance) => {
+      for (const pit of pits) {
+        if (distance?.move?.x === pit?.x && distance?.move?.y === pit?.y) {
+          return false;
+        }
+      }
+
+      return true;
+    });
 
     distances.sort((a, b) => a.distance - b.distance);
 
@@ -159,8 +170,18 @@ export default class GameUtils {
     let longestDistance = 0;
     let move;
 
+    const pits = this.findPits(game);
+
     const possibleMoves = game.players.bearer.possible_moves.filter(
-      (distance) => distance.type !== TILE_PIT
+      (distance) => {
+        for (const pit of pits) {
+          if (distance?.x === pit?.x && distance?.y === pit?.y) {
+            return false;
+          }
+        }
+
+        return true;
+      }
     );
 
     for (const possibleMove of possibleMoves) {

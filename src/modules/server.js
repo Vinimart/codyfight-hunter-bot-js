@@ -21,4 +21,11 @@ export default function server(app) {
       bot.run();
     });
   });
+
+  process.on("SIGINT", () => {
+    app.server.close((err) => {
+      log("Codyfighters terminated", "warn");
+      process.exit(err ? 1 : 0);
+    });
+  });
 }
