@@ -9,7 +9,6 @@ import {
 } from "../../modules/game-constants.js";
 
 import { sleep } from "../../modules/utils.js";
-import errorNotification from "../../utils/error-notification.js";
 
 // Base Codyfighter bot Class for basic game flow configuration, initialization, and termination.
 // No bot game algorithm is implemented in this class.
@@ -50,12 +49,6 @@ export default class CBotConfig {
 
         await this.play();
       } catch (error) {
-        errorNotification(
-          error?.response?.status || error?.status,
-          error?.response?.data?.message || error?.message,
-          error?.config?.data ? JSON.parse(error?.config?.data, null, 2) : null
-        );
-
         log(
           `${this.getBotName()}: ${JSON.stringify(
             {
@@ -91,12 +84,6 @@ export default class CBotConfig {
 
       await this.endGame();
     } catch (error) {
-      errorNotification(
-        error?.response?.status || error?.status,
-        error?.response?.data?.message || error?.message,
-        error?.config?.data ? JSON.parse(error?.config?.data, null, 2) : null
-      );
-
       log(
         `${this.getBotName()}: ${JSON.stringify(
           {
