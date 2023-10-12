@@ -15,6 +15,8 @@ import { sleep } from "../../modules/utils.js";
 
 export default class CBotConfig {
   constructor(app, url, ckey, mode, i, isDev = false) {
+    this.gameAPI = new GameAPI(url);
+
     this.app = app;
     this.url = url;
     this.index = i;
@@ -22,7 +24,6 @@ export default class CBotConfig {
     this.ckey = ckey;
     this.mode = mode;
     this.isDev = isDev;
-    this.gameAPI = new GameAPI(url);
   }
 
   getBotName() {
@@ -31,6 +32,7 @@ export default class CBotConfig {
 
   getGameStatus() {
     const opponent = this.game.players.opponent.name;
+    
     const gameStates = {
       [GAME_STATUS_INIT]: "is waiting for opponent",
       [GAME_STATUS_TERMINATED]: "game terminated",

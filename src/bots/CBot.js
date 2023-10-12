@@ -16,6 +16,11 @@ export default class CBot extends CBotConfig {
 
   // Main game loop
   async playGame() {
+    if (!this.game) {
+      log("Game not found > Re-running game", "error");
+      return await this.run();
+    }
+
     while (this.game.state.status === GAME_STATUS_PLAYING) {
       if (this.game.players.bearer.is_player_turn) {
         await this.castSkills();
