@@ -16,10 +16,7 @@ export default class CBot extends CBotConfig {
 
   // Main game loop
   async playGame() {
-    if (!this.game) {
-      log("Game not found > Re-running game", "error");
-      return await this.run();
-    }
+    if (!this.game) return await this.run();
 
     while (this.game.state.status === GAME_STATUS_PLAYING) {
       if (this.game.players.bearer.is_player_turn) {
@@ -177,6 +174,8 @@ export default class CBot extends CBotConfig {
   }
 
   async castSkills() {
+    if (!this.game?.players?.bearer?.is_player_turn) return;
+
     for (const skill of this.game.players.bearer.skills) {
       const hasEnoughEnergy =
         skill.cost <= this.game.players.bearer.stats.energy;
@@ -275,6 +274,9 @@ export default class CBot extends CBotConfig {
           `${this.getBotName()} - ⚡️ Casting ${skill.name} - id: ${skill?.id}`
         );
       }
+
+      await this.castSkills();
+      break;
     }
   }
 }
