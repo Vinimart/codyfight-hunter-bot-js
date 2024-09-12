@@ -1,6 +1,6 @@
 {
   "name": "hunter-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Codyfight Hunter Bot",
   "main": "src/index.js",
   "type": "module",
